@@ -1,0 +1,80 @@
+/* =====================================================================
+   PORTFY · css/auth.css
+   Camada: View
+   Telas de entrar, cadastrar, recuperar senha e diagnóstico inicial.
+   ===================================================================== */
+
+.ax { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 100vh; }
+.al { display: flex; flex-direction: column; padding: 26px clamp(20px, 5vw, 64px); background: var(--bg); }
+.at { display: flex; justify-content: space-between; align-items: center; }
+.af { flex: 1; width: min(420px, 100%); margin: 0 auto; display: flex; flex-direction: column; justify-content: center; padding: 28px 0; }
+
+.ac { display: none; }
+.ac.on { display: block; animation: acIn .4s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes acIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.ac h2 { font-size: 34px; letter-spacing: -.035em; margin-bottom: 6px; }
+.ac > p { color: var(--tx2); margin-bottom: 26px; font-size: 15px; }
+.ac .btn.bl { margin-top: 6px; }
+.sw { margin-top: 20px; text-align: center; font-size: 14px; color: var(--tx2); }
+.sw button { color: var(--br); font-weight: 700; }
+.sw button:hover { text-decoration: underline; }
+.mode { margin-top: 26px; text-align: center; font-size: 12px; color: var(--tx3); }
+
+/* passos do diagnóstico */
+.stp { display: flex; gap: 8px; margin-bottom: 22px; }
+.stp i { flex: 1; height: 5px; border-radius: 99px; background: var(--bd); transition: background .3s; }
+.stp i.on { background: var(--grad); }
+
+/* painel de marca (lado direito) */
+.ar {
+  position: relative; isolation: isolate; overflow: hidden; display: flex; align-items: center; padding: 56px clamp(28px, 5vw, 72px); color: #fff;
+  background:
+    radial-gradient(70% 60% at 100% 0%, rgba(59, 139, 255, .5), transparent 65%),
+    radial-gradient(50% 50% at 0% 100%, rgba(18, 181, 166, .22), transparent 65%),
+    linear-gradient(160deg, #060F33, #0B1E5B 55%, #12318F);
+}
+.ar::before { content: ''; position: absolute; inset: 0; z-index: -1;
+  background-image: linear-gradient(rgba(255, 255, 255, .06) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .06) 1px, transparent 1px);
+  background-size: 52px 52px; -webkit-mask-image: radial-gradient(80% 80% at 50% 40%, #000, transparent 80%); mask-image: radial-gradient(80% 80% at 50% 40%, #000, transparent 80%); }
+.ar-in { max-width: 460px; }
+.ar q { display: block; margin: 26px 0 28px; font: 600 clamp(24px, 2.6vw, 32px)/1.28 var(--f1); letter-spacing: -.03em; quotes: '“' '”'; }
+.who { display: flex; align-items: center; gap: 14px; font-size: 14px; color: #C5D4FF; }
+.who b { color: #fff; font-size: 15px; }
+.who .av { box-shadow: 0 0 0 3px rgba(255, 255, 255, .15); }
+.ar-list { margin-top: 40px; display: grid; gap: 14px; padding-top: 28px; border-top: 1px solid rgba(255, 255, 255, .14); }
+.ar-list li { display: flex; align-items: center; gap: 12px; font-size: 14.5px; color: #D8E3FF; }
+.ar-list .i { width: 34px; height: 34px; padding: 8px; border-radius: 10px; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .14); color: #fff; }
+
+@media (max-width: 900px) {
+  .ax { grid-template-columns: 1fr; }
+  .ar { display: none; }
+  .af { padding-top: 12px; }
+}
+
+/* ---------- recuperação de senha (tela de nova senha) ---------- */
+.np-badge { width: 60px; height: 60px; display: grid; place-items: center; margin-bottom: 20px; border-radius: 18px; color: #fff; background: var(--grad); box-shadow: var(--glow); }
+.np-badge .i { width: 28px; height: 28px; stroke-width: 2.2; }
+.np-badge.ok { background: linear-gradient(135deg, #0B8F62, var(--ok)); box-shadow: 0 8px 24px color-mix(in srgb, var(--ok) 38%, transparent); animation: npPop .5s cubic-bezier(.2, 1.4, .4, 1) both; }
+.np-badge.warn { background: linear-gradient(135deg, #C77700, var(--wn)); box-shadow: 0 8px 24px color-mix(in srgb, var(--wn) 38%, transparent); }
+.np-spin { width: 26px; height: 26px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, .35); border-top-color: #fff; animation: npSpin .8s linear infinite; }
+@keyframes npSpin { to { transform: rotate(360deg); } }
+@keyframes npPop { from { transform: scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.np-acc { display: flex; align-items: center; gap: 10px; margin: -8px 0 20px; padding: 10px 14px; border-radius: 12px; font-size: 13.5px; color: var(--tx2); background: var(--s2); border: 1px solid var(--bd); }
+.np-acc .i { width: 17px; height: 17px; flex: none; color: var(--br); }
+.np-acc b { color: var(--tx); font-weight: 600; word-break: break-all; }
+
+.np-meter { display: flex; gap: 6px; margin-top: 10px; }
+.np-meter i { flex: 1; height: 5px; border-radius: 99px; background: var(--bd); transition: background .25s; }
+.np-meter[data-s="1"] i:nth-child(-n+1) { background: var(--er); }
+.np-meter[data-s="2"] i:nth-child(-n+2) { background: var(--wn); }
+.np-meter[data-s="3"] i:nth-child(-n+3) { background: var(--br); }
+.np-meter[data-s="4"] i { background: var(--ok); }
+
+.np-rules { display: grid; gap: 8px; margin: 0 0 18px; padding: 0; list-style: none; }
+.np-rules li { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--tx3); transition: color .2s; }
+.np-rules li::before { content: ''; width: 18px; height: 18px; flex: none; border-radius: 50%; border: 2px solid var(--bd2); transition: all .2s;
+  background: no-repeat center / 11px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E"); }
+.np-rules li.on { color: var(--ok); font-weight: 600; }
+.np-rules li.on::before { background-color: var(--ok); border-color: var(--ok); }
+.hint.er { color: var(--er); font-weight: 600; }

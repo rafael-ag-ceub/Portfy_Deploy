@@ -1,70 +1,55 @@
 # Portfy
 
-Plataforma para organizar a carreira: currículos, portfólios, agenda, notas e Agente de IA.
+Organizador de carreira: currículo e portfólio, projetos, agenda, notas e Agente de IA.
+Projeto Integrador · CEUB · 2026.
 
-## Estrutura (MVC)
+HTML + CSS + JavaScript puro (sem build), organizado em **MVC**, com **Supabase** (Auth, Postgres com RLS, Storage, Edge Functions) e IA (Gemini).
+
+## Como rodar
+
+1. Preencha `js/config.js` com a URL e a chave **anon** do Supabase (sem preencher, o app roda em *modo demonstração*, salvando no navegador).
+2. Sirva a pasta: `python3 -m http.server 8000` e abra `http://localhost:8000`.
+3. Depois de editar qualquer arquivo, rode `node tests/validate.js` (precisa do Node). Ele avisa se algo quebrou.
+
+## Estrutura
 
 ```
-portfy-mvc/
-├── index.html                 View: esqueleto das telas
-├── css/                       View: estilos (base, landing, auth, app)
-├── js/
-│   ├── config.js              Configuração (chaves públicas do Supabase)
-│   ├── utils.js               Funções utilitárias
-│   ├── models/                Model: estado, catálogos e regras dos arquivos
-│   ├── services/              Persistência e serviços (localStorage, Supabase, IA)
-│   ├── views/                 View: desenho das páginas, modais e editor
-│   ├── controllers/           Controller: ações do usuário
-│   └── main.js                Inicialização
-├── supabase/
-│   ├── migrations/            Persistence: tabelas, segurança (RLS), funções
-│   ├── tools/                 Apagar banco antigo, verificar o banco, limpar usuário de teste
-│   ├── templates/             E-mails de login em português (colar no painel)
-│   └── functions/
-│       ├── _shared/           Serviços e repositórios compartilhados (IA, e-mail, prompt)
-│       ├── ai-chat/           Controller da API de IA
-│       └── send-reminders/    Controller dos lembretes de tarefas por e-mail
-└── docs/                      Documentação
+index.html                 páginas, ícones (sprite) e rodapé
+css/   base · landing · auth · app          (cores e medidas em base.css)
+js/
+  config.js                chaves do Supabase
+  utils.js                 funções pequenas ($, esc, ico, datas…)
+  main.js                  ponto de entrada e atalhos
+  models/                  dados e regras (state, constants, chat, document, activity)
+  views/                   desenham HTML (ui, pages, billing, chat, modal, editor)
+  controllers/             reagem aos cliques (auth, app, data, ai, remote, billing, profile, editor)
+  services/                fala com fora (portfy-api = Supabase, ai, storage, export = baixar PDF/PNG/JPG/HTML)
+supabase/                  migrations SQL, Edge Function ai-chat, ferramentas
+tests/validate.js          validador rápido
+docs/COMO-EDITAR.md        guia de edição segura
+docs/RECUPERACAO-DE-SENHA.md  como funciona e o que configurar no Supabase
+docs/PAGAMENTOS-MERCADO-PAGO.md  pagamento real dos planos: passo a passo, testes e produção
 ```
 
-## Rodar no computador
+## Banco e IA
 
-Abra a pasta no VS Code e use a extensão Live Server (botão Go Live). Não abra o index.html com duplo clique, porque alguns recursos exigem um servidor local.
-Alternativa: `npx serve .` dentro da pasta.
+- Migration: `supabase/migrations/`. Se recriar o schema, rode também `supabase/tools/permissoes_service_role.sql`.
+- Publicar a função de IA: `npx supabase functions deploy ai-chat`.
+- Pagamentos: rode `supabase/migrations/20261021000000_perfil_e_pagamentos.sql`, configure os segredos e publique `create-checkout`, `check-payment` e `payment-webhook --no-verify-jwt`. Tudo em `docs/PAGAMENTOS-MERCADO-PAGO.md`.
+- Nunca coloque a chave `service_role` nem chaves de IA no front-end.
 
-## Modo local x Supabase
+## Agente de IA
 
-Com `js/config.js` vazio, o site funciona com localStorage (demonstração).
-Preencha `SUPABASE_URL` e `SUPABASE_ANON_KEY` para conectar ao banco real. Veja o guia de integração.
+Pausar / Continuar / Parar durante a digitação, até 20 conversas salvas (lista lateral), título automático, limite diário por plano.
 
-## Segurança
+## Recuperação de senha
 
-Nunca versione chaves secretas (service_role, chave da IA). Elas ficam somente nos secrets do Supabase.
+Esqueci a senha > e-mail do Supabase > volta ao site > tela própria **Criar nova senha**. Configuração no painel (URL Configuration e Email Templates): veja `docs/RECUPERACAO-DE-SENHA.md`.
 
-## Modo Supabase (banco em português)
+## Novidades da versão 8 (`pagamentos-perfil-editor v8`)
 
-As tabelas e colunas do banco têm nomes em português (tarefas, eventos, notas, projetos, documentos, perfis...).
-O front-end continua usando seus nomes curtos (t, d, done...). O único arquivo que conhece os dois lados é
-`js/services/portfy-api.js` (veja MAP e TABELA). As Edge Functions usam os nomes em português direto.
-
-O `js/config.js` já traz a URL e a chave pública do projeto. Para a integração completa, no SQL Editor do Supabase:
-1. (Só se o banco ainda tem as tabelas antigas em inglês) rode `supabase/tools/00_apagar_banco_antigo.sql`.
-2. Rode `supabase/migrations/20261008000000_initial_schema.sql`.
-3. Rode `supabase/migrations/20261008000100_email_reminders.sql`.
-4. Rode `supabase/tools/verificar_banco.sql`: todas as linhas devem dizer OK.
-5. Configure o SMTP e cole os modelos de `supabase/templates/` em Authentication, Emails.
-6. Publique as funções (depois de `npx supabase login` e `npx supabase link --project-ref SEU-REF`):
-   `npx supabase functions deploy ai-chat` e `npx supabase functions deploy send-reminders --no-verify-jwt`.
-
-Segredos (chave da IA, e-mail) ficam só em `npx supabase secrets set --env-file .env`. Nunca no código.
-
-### Regra de ouro ao mudar um nome no banco
-Mudou uma tabela ou coluna? Atualize os 3 lugares: o SQL, o `portfy-api.js` (MAP/TABELA) e as Edge Functions
-(`_shared/chat.repository.ts`, `_shared/prompt.ts`, `send-reminders/index.ts`).
-
-## Se algo não salvar
-
-1. Olhe a faixa no rodapé do formulário de acesso: ela diz se o site está conectado ao Supabase ou em modo local.
-2. Abra o console (F12) e rode `await portfyDiag()`: ele testa banco, login, gravação, Storage e a função de IA.
-3. Para conferir o banco inteiro, rode `supabase/tools/verificar_banco.sql`.
-4. Para apagar um usuário de teste de verdade, use `supabase/tools/limpar_usuario_de_teste.sql`.
+- **Pagamento real** dos planos com Mercado Pago (Pix, cartão, boleto), validade de 30 dias e histórico na tela de Planos.
+- **Perfil completo**: foto (com recorte automático), nome, profissão, cidade, LinkedIn, GitHub, habilidades e indicador de perfil completo.
+- **Editor profissional**: desfazer/refazer, camadas (ocultar, travar, reordenar), alinhamento, ímã com guias, giro, 8 tipos de elemento, mais fontes, sombra, borda, transparência, tamanhos de página, zoom e atalhos (Ctrl+Z/Y/D/C/V/S).
+- **Baixar** de verdade em PDF, PNG, JPG ou HTML, sem passar pela impressora (no editor e em *Meus arquivos*). O plano Premium baixa sem marca.
+- **Projetos (v9)**: sem porcentagem; cada projeto é vinculado a um arquivo e abre direto nele. Novo botão **Anexos** (imagens e PDFs) em Projetos, Modelos e no editor, e **23 modelos** com assistente de personalização. Veja docs/ATUALIZAR-BANCO-V9.md.
